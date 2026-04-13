@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Info.plist for TimeBloom
+
+  The two keys that MAKE this a menu-bar-only app:
+
+    LSUIElement       = YES   → no Dock icon, no main menu, no app
+                                switcher entry. The app is "agent" style.
+
+    LSMinimumSystemVersion → enforces macOS 14 (Sonoma) at install time.
+
+  The other keys are standard Cocoa boilerplate. If you generated the
+  Xcode project with the New > App template, Xcode will already have
+  filled most of these in — copy LSUIElement specifically into the
+  generated plist (or set "Application is agent (UIElement)" in the
+  Info tab of the target settings).
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+
+    <!-- The two keys that turn this into a menu bar app. -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <!-- We talk to https://*.supabase.co — ATS allows that by default,
+         no NSAppTransportSecurity overrides needed. -->
+
+    <!-- A short, user-visible reason shown in the System Settings
+         panel for notifications (Sonoma displays this when the user
+         inspects an app's notification permissions). -->
+    <key>NSUserNotificationUsageDescription</key>
+    <string>TimeBloom uses notifications to alert you when you've been idle or when a timer has been running for a long time.</string>
+</dict>
+</plist>

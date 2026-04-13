@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sandbox entitlements for TimeBloom.
+
+  - app-sandbox: required for Mac App Store distribution AND a good
+    practice even outside the store. Restricts file/network access to
+    only what's declared below.
+
+  - network.client: lets us make outgoing HTTPS calls to Supabase.
+    (No need for `network.server` — we never accept connections.)
+
+  Note: the Keychain group entitlement is NOT required for the
+  generic-password items we use — those are scoped per-app by default.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <key>com.apple.security.network.client</key>
+    <true/>
+</dict>
+</plist>

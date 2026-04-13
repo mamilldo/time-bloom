@@ -2,133 +2,222 @@
 //  Models.swift
 //  TimeBloom
 //
-//  Codable types that mirror the API. They are intentionally permissive
-//  (most string fields are optional) so a slightly different real-world
-//  payload doesn't crash the decoder. Adjust to the canonical schema once
-//  you've audited the live API at /api-docs.
+//  Codable types that mirror the Timer API exactly as documented at
+//  https://time-bloom-suite.lovable.app/openapi.json
+//
+//  The API is intentionally narrow: a single status query, a single
+//  projects-with-tasks query, and a single POST endpoint that performs
+//  start / stop / switch via an `action` discriminator. Mirroring it
+//  literally keeps the networking layer dumb and the SwiftUI layer
+//  predictable.
 //
 
 import Foundation
 
-// MARK: - Auth
+// MARK: - Auth (Supabase /auth/v1/token)
+//
+// Supabase's password-grant endpoint expects a JSON body with `email` and
+// `password`, and returns the bundle below. We only need `access_token`,
+// `refresh_token`, and `expires_at` for runtime use; the rest is decoded
+// for completeness but ignored.
 
-/// Body we POST to `/auth/login`.
-struct LoginRequest: Encodable {
+struct SupabaseLoginRequest: Encodable {
     let email: String
     let password: String
 }
 
-/// Server response for a successful login. The exact key for the token may
-/// be `token`, `access_token`, or `accessToken` depending on the framework
-/// powering the API; we use a custom decoder to accept any of them so this
-/// model survives small spec changes.
-struct LoginResponse: Decodable {
-    let token: String
-    let user: User?
+struct SupabaseRefreshRequest: Encodable {
+    let refresh_token: String
+}
+
+struct SupabaseSession: Decodable {
+    let accessToken: String
+    let refreshToken: String
+    let expiresIn: Int           // seconds from now
+    let expiresAt: Int?          // unix timestamp (older Supabase builds omit this)
+    let tokenType: String
+    let user: SupabaseUser?
 
     private enum CodingKeys: String, CodingKey {
-        case token, access_token, accessToken, user
+        case accessToken  = "access_token"
+        case refreshToken = "refresh_token"
+        case expiresIn    = "expires_in"
+        case expiresAt    = "expires_at"
+        case tokenType    = "token_type"
+        case user
+    }
+
+    /// The wall-clock instant this token stops being valid. We trust
+    /// `expires_at` when present (server clock) and otherwise extrapolate
+    /// from `expires_in` against the local clock.
+    var expiry: Date {
+        if let expiresAt { return Date(timeIntervalSince1970: TimeInterval(expiresAt)) }
+        return Date().addingTimeInterval(TimeInterval(expiresIn))
+    }
+}
+
+struct SupabaseUser: Decodable, Hashable {
+    let id: String
+    let email: String?
+}
+
+// MARK: - Timer API: status
+
+/// `GET /?action=status` returns one of these two shapes. Supabase's
+/// OpenAPI uses an unkeyed `oneOf` discriminated solely by the `running`
+/// boolean, so we decode by peeking at that field first.
+enum TimerStatus: Decodable, Equatable {
+    case running(RunningTimer)
+    case stopped
+
+    private enum CodingKeys: String, CodingKey { case running }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let isRunning = try c.decode(Bool.self, forKey: .running)
+        if isRunning {
+            self = .running(try RunningTimer(from: decoder))
+        } else {
+            self = .stopped
+        }
+    }
+
+    var runningTimer: RunningTimer? {
+        if case .running(let t) = self { return t }
+        return nil
+    }
+}
+
+/// The richer payload returned when a timer is running.
+struct RunningTimer: Decodable, Equatable {
+    let timerId: String
+    let projectId: String
+    let project: String                 // human-readable project name
+    let taskId: String?
+    let task: String?                   // human-readable task name (nil if no task)
+    let startTime: Date
+    let elapsedSeconds: Int
+
+    private enum CodingKeys: String, CodingKey {
+        case timerId        = "timer_id"
+        case projectId      = "project_id"
+        case project
+        case taskId         = "task_id"
+        case task
+        case startTime      = "start_time"
+        case elapsedSeconds = "elapsed_seconds"
+    }
+}
+
+// MARK: - Timer API: projects
+
+/// `GET /?action=projects` wraps the list in a `{ "projects": [...] }`
+/// envelope, which we collapse to the inner array at the API-client layer.
+struct ProjectsEnvelope: Decodable {
+    let projects: [Project]
+}
+
+struct Project: Decodable, Identifiable, Hashable {
+    let id: String
+    let name: String
+    let client: String
+    let tasks: [TaskItem]
+}
+
+/// Tasks are nested under their project — the API has no flat /tasks list.
+/// `TaskItem` (vs. `Task`) avoids the name collision with Swift Concurrency's
+/// `_Concurrency.Task`.
+struct TaskItem: Decodable, Identifiable, Hashable {
+    let id: String
+    let name: String
+}
+
+// MARK: - Timer API: action POST bodies
+
+/// All three action requests POST to the same `/` endpoint. Encoding them
+/// as a single enum lets the call site stay terse: `api.perform(.start(...))`.
+enum TimerAction: Encodable {
+    case start(projectId: String, taskId: String?)
+    case stop
+    case switchTo(projectId: String, taskId: String?)
+
+    private enum CodingKeys: String, CodingKey {
+        case action, project_id, task_id
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .start(let projectId, let taskId):
+            try c.encode("start", forKey: .action)
+            try c.encode(projectId, forKey: .project_id)
+            try c.encodeIfPresent(taskId, forKey: .task_id)
+        case .stop:
+            try c.encode("stop", forKey: .action)
+        case .switchTo(let projectId, let taskId):
+            try c.encode("switch", forKey: .action)
+            try c.encode(projectId, forKey: .project_id)
+            try c.encodeIfPresent(taskId, forKey: .task_id)
+        }
+    }
+}
+
+// MARK: - Timer API: action responses
+//
+// The OpenAPI spec describes four distinct response shapes across the
+// three actions. We model them as one enum and decode by peeking at the
+// `action` field (for switch) and presence of `logged_minutes` (for stop).
+
+enum TimerActionResponse: Decodable {
+    case started(timerId: String)
+    case stopped(loggedMinutes: Int, project: String)
+    case switchedReassigned                              // < 60s — same entry, new project/task
+    case switchedNew(loggedMinutes: Int, newTimerId: String)
+
+    private enum CodingKeys: String, CodingKey {
+        case ok, action, timer_id, logged_minutes, project, new_timer_id
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        if let t = try c.decodeIfPresent(String.self, forKey: .token) {
-            self.token = t
-        } else if let t = try c.decodeIfPresent(String.self, forKey: .access_token) {
-            self.token = t
-        } else if let t = try c.decodeIfPresent(String.self, forKey: .accessToken) {
-            self.token = t
+
+        // Switch responses include an `action` field; start/stop don't.
+        if let action = try c.decodeIfPresent(String.self, forKey: .action) {
+            switch action {
+            case "reassigned":
+                self = .switchedReassigned
+            case "switched":
+                let mins = try c.decode(Int.self, forKey: .logged_minutes)
+                let id   = try c.decode(String.self, forKey: .new_timer_id)
+                self = .switchedNew(loggedMinutes: mins, newTimerId: id)
+            default:
+                throw DecodingError.dataCorruptedError(
+                    forKey: .action, in: c,
+                    debugDescription: "Unknown switch action: \(action)"
+                )
+            }
+            return
+        }
+
+        // No `action` field: it's either start (has `timer_id`) or stop
+        // (has `logged_minutes`).
+        if let id = try c.decodeIfPresent(String.self, forKey: .timer_id) {
+            self = .started(timerId: id)
+        } else if let mins = try c.decodeIfPresent(Int.self, forKey: .logged_minutes) {
+            let project = try c.decode(String.self, forKey: .project)
+            self = .stopped(loggedMinutes: mins, project: project)
         } else {
             throw DecodingError.dataCorruptedError(
-                forKey: .token, in: c,
-                debugDescription: "No token field in login response"
+                forKey: .ok, in: c,
+                debugDescription: "Unrecognised action response shape"
             )
         }
-        self.user = try c.decodeIfPresent(User.self, forKey: .user)
     }
 }
 
-// MARK: - Domain types
+// MARK: - Errors surfaced by the API
 
-struct User: Codable, Identifiable, Hashable {
-    let id: String
-    let email: String?
-    let name: String?
-}
-
-struct Project: Codable, Identifiable, Hashable {
-    let id: String
-    let name: String
-    /// Optional accent the API may return for project-coloured chips.
-    let color: String?
-}
-
-struct TaskItem: Codable, Identifiable, Hashable {
-    let id: String
-    let name: String
-    /// Some APIs scope tasks to a project. If yours doesn't, leave nil and
-    /// the picker will show a flat list.
-    let projectId: String?
-
-    private enum CodingKeys: String, CodingKey {
-        case id, name
-        case projectId = "project_id"
-    }
-}
-
-/// A single timer entry. The API may use ISO-8601 strings; `APIClient`
-/// configures a date decoding strategy that handles both forms.
-struct TimeEntry: Codable, Identifiable, Hashable {
-    let id: String
-    let taskId: String?
-    let projectId: String?
-    let startedAt: Date
-    let stoppedAt: Date?
-    let notes: String?
-
-    var isRunning: Bool { stoppedAt == nil }
-
-    /// Wall-clock seconds since the entry started. Re-evaluated on every
-    /// access — call inside a `Timer` tick to get a live duration.
-    func elapsed(now: Date = .now) -> TimeInterval {
-        (stoppedAt ?? now).timeIntervalSince(startedAt)
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case id, notes
-        case taskId = "task_id"
-        case projectId = "project_id"
-        case startedAt = "started_at"
-        case stoppedAt = "stopped_at"
-    }
-}
-
-// MARK: - Request bodies
-
-struct StartTimerRequest: Encodable {
-    let taskId: String?
-    let projectId: String?
-    let startedAt: Date
-    let notes: String?
-
-    private enum CodingKeys: String, CodingKey {
-        case notes
-        case taskId = "task_id"
-        case projectId = "project_id"
-        case startedAt = "started_at"
-    }
-}
-
-struct UpdateTimerRequest: Encodable {
-    var startedAt: Date?
-    var stoppedAt: Date?
-    var notes: String?
-    var taskId: String?
-
-    private enum CodingKeys: String, CodingKey {
-        case notes
-        case taskId = "task_id"
-        case startedAt = "started_at"
-        case stoppedAt = "stopped_at"
-    }
+/// `{ "error": "A timer is already running. Stop it first." }`
+struct APIErrorBody: Decodable {
+    let error: String
 }
