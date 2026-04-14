@@ -140,7 +140,7 @@ actor APIClient {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await session.data(for: request)
+            (data, response) = try await sendWithRetryOnConnectionLost(request)
         } catch {
             throw APIError.transport(underlying: error)
         }
@@ -177,6 +177,18 @@ actor APIClient {
 
     private func parseErrorMessage(_ data: Data) -> String? {
         (try? JSONDecoder().decode(APIErrorBody.self, from: data))?.error
+    }
+
+    /// Retry once on `-1005 "The network connection was lost"`. This
+    /// happens when the server closes an idle keep-alive connection while
+    /// URLSession tries to reuse it. Apple's recommended fix is to retry.
+    private func sendWithRetryOnConnectionLost(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        do {
+            return try await session.data(for: request)
+        } catch let error as URLError where error.code == .networkConnectionLost {
+            // Single retry — if it fails again, let it propagate.
+            return try await session.data(for: request)
+        }
     }
 
     // MARK: - Date formatters
