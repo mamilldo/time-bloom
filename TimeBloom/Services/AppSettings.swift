@@ -18,7 +18,7 @@ import Observation
 final class AppSettings {
 
     /// How many minutes of inactivity before we ask the user "are you
-    /// still working?". Default 5 mirrors Harvest's behaviour.
+    /// still working?". Default 10 minutes.
     var idleThresholdMinutes: Int {
         didSet { defaults.set(idleThresholdMinutes, forKey: Keys.idleThreshold) }
     }
@@ -44,7 +44,7 @@ final class AppSettings {
         // Reading then writing the same key in `didSet` is fine — the
         // first read just hits the in-memory plist cache.
         let storedIdle = defaults.object(forKey: Keys.idleThreshold) as? Int
-        self.idleThresholdMinutes = storedIdle ?? 5
+        self.idleThresholdMinutes = storedIdle ?? 10
 
         let storedLong = defaults.object(forKey: Keys.longRunningHours) as? Int
         self.longRunningTimerHours = storedLong ?? 4
