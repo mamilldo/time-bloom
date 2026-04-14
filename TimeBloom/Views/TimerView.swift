@@ -148,7 +148,7 @@ struct TimerView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                .frame(maxHeight: 260)
+                .frame(maxHeight: 400)
             }
         }
     }

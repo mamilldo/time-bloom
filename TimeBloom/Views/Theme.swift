@@ -27,7 +27,7 @@ enum Theme {
 
     /// Popover content has a fixed width so multi-line task names don't
     /// reflow the popover when projects change.
-    static let popoverWidth: CGFloat = 320
+    static let popoverWidth: CGFloat = 360
 }
 
 private extension Color {
