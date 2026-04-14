@@ -157,6 +157,9 @@ struct TimerView: View {
             Spacer()
             Menu {
                 Button("Refresh now") { Task { await store.refresh() } }
+                Button("Manage projects…") {
+                    NSWorkspace.shared.open(URL(string: "https://time-bloom-suite.lovable.app/projects")!)
+                }
                 Divider()
                 Button("Sign out") { auth.signOut() }
                 Divider()
