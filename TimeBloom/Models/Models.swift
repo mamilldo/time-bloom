@@ -132,17 +132,71 @@ struct TaskItem: Decodable, Identifiable, Hashable {
     let name: String
 }
 
+// MARK: - Timer API: entries
+
+/// `GET /?action=entries&date=2026-04-14`
+struct EntriesResponse: Decodable {
+    let date: String               // "2026-04-14"
+    let entries: [TimeEntry]
+}
+
+/// A completed (or currently running) time entry for the day.
+struct TimeEntry: Decodable, Identifiable, Equatable {
+    let id: String
+    let projectId: String
+    let project: String?           // human-readable
+    let taskId: String?
+    let task: String?              // human-readable
+    let startTime: Date?
+    let endTime: Date?
+    let durationMinutes: Int
+    let description: String?
+    let isBillable: Bool
+
+    /// Convenience: formatted time range "9:07 – 9:48"
+    var timeRange: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "H:mm"
+        let start = startTime.map { fmt.string(from: $0) } ?? "?"
+        let end = endTime.map { fmt.string(from: $0) } ?? "–"
+        return "\(start) – \(end)"
+    }
+
+    /// Convenience: formatted duration "0:38"
+    var durationFormatted: String {
+        let h = durationMinutes / 60
+        let m = durationMinutes % 60
+        return String(format: "%d:%02d", h, m)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case projectId      = "project_id"
+        case project
+        case taskId         = "task_id"
+        case task
+        case startTime      = "start_time"
+        case endTime        = "end_time"
+        case durationMinutes = "duration_minutes"
+        case description
+        case isBillable     = "is_billable"
+    }
+}
+
 // MARK: - Timer API: action POST bodies
 
-/// All three action requests POST to the same `/` endpoint. Encoding them
-/// as a single enum lets the call site stay terse: `api.perform(.start(...))`.
+/// All action requests POST to the same `/` endpoint. Encoding them as a
+/// single enum lets the call site stay terse: `api.perform(.start(...))`.
 enum TimerAction: Encodable {
     case start(projectId: String, taskId: String?)
     case stop
     case switchTo(projectId: String, taskId: String?)
+    case create(projectId: String, taskId: String?, startTime: Date, endTime: Date, description: String?)
+    case edit(timerId: String, projectId: String?, taskId: String?, startTime: Date?, endTime: Date?, description: String?)
+    case delete(timerId: String)
 
     private enum CodingKeys: String, CodingKey {
-        case action, project_id, task_id
+        case action, project_id, task_id, timer_id, start_time, end_time, description
     }
 
     func encode(to encoder: Encoder) throws {
@@ -158,8 +212,32 @@ enum TimerAction: Encodable {
             try c.encode("switch", forKey: .action)
             try c.encode(projectId, forKey: .project_id)
             try c.encodeIfPresent(taskId, forKey: .task_id)
+        case .create(let projectId, let taskId, let startTime, let endTime, let description):
+            try c.encode("create", forKey: .action)
+            try c.encode(projectId, forKey: .project_id)
+            try c.encodeIfPresent(taskId, forKey: .task_id)
+            try c.encode(Self.iso8601Formatter.string(from: startTime), forKey: .start_time)
+            try c.encode(Self.iso8601Formatter.string(from: endTime), forKey: .end_time)
+            try c.encodeIfPresent(description, forKey: .description)
+        case .edit(let timerId, let projectId, let taskId, let startTime, let endTime, let description):
+            try c.encode("edit", forKey: .action)
+            try c.encode(timerId, forKey: .timer_id)
+            try c.encodeIfPresent(projectId, forKey: .project_id)
+            try c.encodeIfPresent(taskId, forKey: .task_id)
+            if let startTime { try c.encode(Self.iso8601Formatter.string(from: startTime), forKey: .start_time) }
+            if let endTime { try c.encode(Self.iso8601Formatter.string(from: endTime), forKey: .end_time) }
+            try c.encodeIfPresent(description, forKey: .description)
+        case .delete(let timerId):
+            try c.encode("delete", forKey: .action)
+            try c.encode(timerId, forKey: .timer_id)
         }
     }
+
+    private static let iso8601Formatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
 }
 
 // MARK: - Timer API: action responses
@@ -171,17 +249,21 @@ enum TimerAction: Encodable {
 enum TimerActionResponse: Decodable {
     case started(timerId: String)
     case stopped(loggedMinutes: Int, project: String)
-    case switchedReassigned                              // < 60s — same entry, new project/task
+    case switchedReassigned
     case switchedNew(loggedMinutes: Int, newTimerId: String)
+    case created(entryId: String, durationMinutes: Int)
+    case edited(updated: [String])
+    case deleted
 
     private enum CodingKeys: String, CodingKey {
         case ok, action, timer_id, logged_minutes, project, new_timer_id
+        case entry_id, duration_minutes, updated
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
 
-        // Switch responses include an `action` field; start/stop don't.
+        // Switch responses include an `action` field.
         if let action = try c.decodeIfPresent(String.self, forKey: .action) {
             switch action {
             case "reassigned":
@@ -199,19 +281,34 @@ enum TimerActionResponse: Decodable {
             return
         }
 
-        // No `action` field: it's either start (has `timer_id`) or stop
-        // (has `logged_minutes`).
+        // Edit response has `updated` array.
+        if let updated = try c.decodeIfPresent([String].self, forKey: .updated) {
+            self = .edited(updated: updated)
+            return
+        }
+
+        // Create response has `entry_id` + `duration_minutes`.
+        if let entryId = try c.decodeIfPresent(String.self, forKey: .entry_id) {
+            let mins = try c.decode(Int.self, forKey: .duration_minutes)
+            self = .created(entryId: entryId, durationMinutes: mins)
+            return
+        }
+
+        // Start response has `timer_id` (but no `logged_minutes`).
         if let id = try c.decodeIfPresent(String.self, forKey: .timer_id) {
             self = .started(timerId: id)
-        } else if let mins = try c.decodeIfPresent(Int.self, forKey: .logged_minutes) {
+            return
+        }
+
+        // Stop response has `logged_minutes`.
+        if let mins = try c.decodeIfPresent(Int.self, forKey: .logged_minutes) {
             let project = try c.decode(String.self, forKey: .project)
             self = .stopped(loggedMinutes: mins, project: project)
-        } else {
-            throw DecodingError.dataCorruptedError(
-                forKey: .ok, in: c,
-                debugDescription: "Unrecognised action response shape"
-            )
+            return
         }
+
+        // Delete response is just `{ok: true}` — nothing else.
+        self = .deleted
     }
 }
 

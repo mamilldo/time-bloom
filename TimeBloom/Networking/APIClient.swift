@@ -63,8 +63,14 @@ actor APIClient {
         return envelope.projects
     }
 
-    /// Performs a start, stop, or switch and returns the typed response.
-    /// The caller decides what to do with `loggedMinutes`, etc.
+    /// Fetch time entries for a given date (defaults to today).
+    func fetchEntries(date: String? = nil) async throws -> EntriesResponse {
+        var query = [URLQueryItem(name: "action", value: "entries")]
+        if let date { query.append(URLQueryItem(name: "date", value: date)) }
+        return try await get(query: query, as: EntriesResponse.self)
+    }
+
+    /// Performs any timer/entry action and returns the typed response.
     func perform(_ action: TimerAction) async throws -> TimerActionResponse {
         try await post(body: action, as: TimerActionResponse.self)
     }

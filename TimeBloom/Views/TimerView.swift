@@ -2,13 +2,22 @@
 //  TimerView.swift
 //  TimeBloom
 //
-//  Main popover content shown when signed in. Two visual states:
+//  Main popover content shown when signed in. Harvest-style layout:
 //
-//      ● Running    — green dot, project name, live HH:MM:SS, Stop + Switch
-//      ○ Stopped    — "Start a timer" CTA that opens the project picker
-//
-//  All state comes from `TimerStore` (running status, projects, busy
-//  flag, error). The view itself is otherwise stateless.
+//      ┌─────────────────────────┐
+//      │ Today, 14 Apr   total ▸ │  ← date header + daily total
+//      ├─────────────────────────┤
+//      │  Acme Corp              │
+//      │  Website Redesign       │  ← scrollable entries list
+//      │  Development            │
+//      │  9:07 – 9:48    0:41 ▸ │
+//      │  ·····                  │
+//      ├─────────────────────────┤
+//      │ ● Running: Connect 0:27 │  ← active timer bar (if running)
+//      │  [Stop]  [Switch]       │
+//      ├─────────────────────────┤
+//      │  user@email   + ⋯      │  ← footer with add + menu
+//      └─────────────────────────┘
 //
 
 import SwiftUI
@@ -20,40 +29,34 @@ struct TimerView: View {
 
     @State private var showingPicker = false
     @State private var pickerMode: ProjectPickerView.Mode = .start
+    @State private var showingEntryForm = false
+    @State private var entryFormMode: EntryFormView.Mode = .create
+    @State private var showingDeleteConfirm = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            header
-
-            switch store.status {
-            case .none:
-                ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 60)
-
-            case .some(.stopped):
-                stoppedBody
-
-            case .some(.running(let timer)):
-                runningBody(timer)
+        VStack(alignment: .leading, spacing: 0) {
+            dateHeader
+            Divider()
+            entriesList
+            if case .running(let timer) = store.status {
+                Divider()
+                activeTimerBar(timer)
             }
-
             if let error = store.lastError {
                 ErrorBanner(message: error.userMessage) {
                     store.lastError = nil
                 }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
             }
-
             Divider()
-
             footer
         }
-        .padding(14)
         .frame(width: Theme.popoverWidth)
         .task {
-            // Each time the popover opens we refresh both status and the
-            // project list — cheap, and keeps the picker fresh.
             await store.refresh()
             await store.refreshProjects()
+            await store.refreshEntries()
         }
         .sheet(isPresented: $showingPicker) {
             ProjectPickerView(
@@ -62,65 +65,116 @@ struct TimerView: View {
                 onDismiss: { showingPicker = false }
             )
         }
+        .sheet(isPresented: $showingEntryForm) {
+            EntryFormView(
+                mode: entryFormMode,
+                store: store,
+                onDismiss: { showingEntryForm = false }
+            )
+        }
     }
 
-    // MARK: - Header
+    // MARK: - Date header
 
-    private var header: some View {
+    private var dateHeader: some View {
         HStack {
             Image(systemName: "leaf.fill").foregroundStyle(Theme.brand)
-            Text("TimeBloom").font(.headline)
+            Text(todayString)
+                .font(.subheadline.weight(.semibold))
             Spacer()
+            Text(totalString)
+                .font(.subheadline.monospacedDigit())
+                .foregroundStyle(.secondary)
             if store.isBusy {
                 ProgressView().controlSize(.small)
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
     }
 
-    // MARK: - Stopped
+    private var todayString: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "EEEE, d MMM"
+        return fmt.string(from: Date())
+    }
 
-    private var stoppedBody: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("No timer running")
-                .font(.subheadline).foregroundStyle(.secondary)
-            Button {
-                pickerMode = .start
-                showingPicker = true
-            } label: {
-                Label("Start a timer", systemImage: "play.fill")
-                    .frame(maxWidth: .infinity)
+    private var totalString: String {
+        let total = store.todayTotalMinutes
+        // Add running timer's live elapsed if active
+        var extra = 0
+        if let timer = store.status?.runningTimer {
+            extra = Int(store.now.timeIntervalSince(timer.startTime)) / 60
+        }
+        let mins = total + extra
+        return String(format: "%d:%02d", mins / 60, mins % 60)
+    }
+
+    // MARK: - Entries list
+
+    private var entriesList: some View {
+        Group {
+            if store.entries.isEmpty && store.status?.runningTimer == nil {
+                VStack(spacing: 8) {
+                    Text("No entries today")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Button {
+                        pickerMode = .start
+                        showingPicker = true
+                    } label: {
+                        Label("Start a timer", systemImage: "play.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Theme.brand)
+                }
+                .frame(maxWidth: .infinity, minHeight: 80)
+                .padding(.vertical, 8)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 1) {
+                        ForEach(store.entries) { entry in
+                            let isRunning = store.status?.runningTimer?.timerId == entry.id
+                            EntryRowView(
+                                entry: entry,
+                                isRunning: isRunning,
+                                store: store,
+                                onEdit: {
+                                    entryFormMode = .edit(entry)
+                                    showingEntryForm = true
+                                }
+                            )
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .frame(maxHeight: 260)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Theme.brand)
-            .keyboardShortcut("s", modifiers: [.command])
         }
     }
 
-    // MARK: - Running
+    // MARK: - Active timer bar
 
-    private func runningBody(_ timer: RunningTimer) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+    private func activeTimerBar(_ timer: RunningTimer) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Circle()
                     .fill(Theme.runningIndicator)
                     .frame(width: 8, height: 8)
                 Text(timer.project)
-                    .font(.headline)
+                    .font(.subheadline.weight(.medium))
                     .lineLimit(1)
+                if let task = timer.task, !task.isEmpty {
+                    Text("· \(task)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                Text(elapsedString(start: timer.startTime, now: store.now))
+                    .font(.system(.subheadline, design: .monospaced))
+                    .monospacedDigit()
             }
-            if let task = timer.task, !task.isEmpty {
-                Text(task)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            // Live elapsed — recomputed via `store.now`.
-            Text(elapsedString(start: timer.startTime, now: store.now))
-                .font(.system(size: 28, weight: .semibold, design: .monospaced))
-                .monospacedDigit()
-                .padding(.vertical, 2)
-
             HStack(spacing: 8) {
                 Button(role: .destructive) {
                     Task { await store.stop() }
@@ -130,8 +184,8 @@ struct TimerView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
+                .controlSize(.small)
                 .disabled(store.isBusy)
-                .keyboardShortcut("s", modifiers: [.command])
 
                 Button {
                     pickerMode = .switchTask
@@ -141,22 +195,55 @@ struct TimerView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
                 .disabled(store.isBusy)
-                .keyboardShortcut("w", modifiers: [.command])
             }
         }
+        .padding(10)
+        .background(Theme.brand.opacity(0.05))
     }
 
     // MARK: - Footer
 
     private var footer: some View {
-        HStack {
+        HStack(spacing: 8) {
             if let user = auth.currentUser?.email {
                 Text(user).font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
+
+            // "+" add manual entry
+            Button {
+                entryFormMode = .create
+                showingEntryForm = true
+            } label: {
+                Image(systemName: "plus.circle")
+                    .font(.title3)
+                    .foregroundStyle(Theme.brand)
+            }
+            .buttonStyle(.plain)
+            .help("Add time entry")
+
+            // Start timer (when no timer running)
+            if store.status?.runningTimer == nil {
+                Button {
+                    pickerMode = .start
+                    showingPicker = true
+                } label: {
+                    Image(systemName: "play.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(Theme.brand)
+                }
+                .buttonStyle(.plain)
+                .help("Start timer")
+            }
+
+            // Options menu
             Menu {
-                Button("Refresh now") { Task { await store.refresh() } }
+                Button("Refresh now") { Task {
+                    await store.refresh()
+                    await store.refreshEntries()
+                }}
                 Button("Manage projects…") {
                     NSWorkspace.shared.open(URL(string: "https://time-bloom-suite.lovable.app/projects")!)
                 }
@@ -170,6 +257,8 @@ struct TimerView: View {
             .menuStyle(.borderlessButton)
             .fixedSize()
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
     }
 
     // MARK: - Helpers

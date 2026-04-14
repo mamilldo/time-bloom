@@ -28,6 +28,14 @@ final class TimerStore {
     /// open so a project added on the web shows up immediately.
     private(set) var projects: [Project] = []
 
+    /// Today's time entries, shown in the Harvest-style list.
+    private(set) var entries: [TimeEntry] = []
+
+    /// Total minutes logged today (sum of all entries).
+    var todayTotalMinutes: Int {
+        entries.reduce(0) { $0 + $1.durationMinutes }
+    }
+
     /// Most-recent error surfaced by an action call. The view shows it
     /// as an inline banner; clearing it is the view's responsibility.
     var lastError: APIError?
@@ -134,9 +142,7 @@ final class TimerStore {
         }
     }
 
-    /// Refresh the cached projects list. We swallow errors silently here;
-    /// the picker view shows the previous list (or empty state) if the
-    /// fetch fails.
+    /// Refresh the cached projects list.
     func refreshProjects() async {
         guard auth.isSignedIn else { return }
         do {
@@ -144,6 +150,17 @@ final class TimerStore {
         } catch let error as APIError {
             self.lastError = error
         } catch { /* ignore transport errors on background refresh */ }
+    }
+
+    /// Fetch today's time entries from the server.
+    func refreshEntries() async {
+        guard auth.isSignedIn else { return }
+        do {
+            let response = try await api.fetchEntries()
+            self.entries = response.entries
+        } catch let error as APIError {
+            self.lastError = error
+        } catch { /* ignore transport errors */ }
     }
 
     // MARK: - Timer actions
@@ -160,14 +177,40 @@ final class TimerStore {
         await runAction { [api] in try await api.perform(.switchTo(projectId: projectId, taskId: taskId)) }
     }
 
-    /// Common wrapper: sets `isBusy`, runs the action, refreshes status,
-    /// and converts errors into `lastError`.
+    // MARK: - Entry CRUD
+
+    func createEntry(projectId: String, taskId: String?, startTime: Date, endTime: Date, description: String?) async {
+        await runAction { [api] in
+            try await api.perform(.create(projectId: projectId, taskId: taskId,
+                                          startTime: startTime, endTime: endTime,
+                                          description: description))
+        }
+    }
+
+    func editEntry(timerId: String, projectId: String?, taskId: String?,
+                   startTime: Date?, endTime: Date?, description: String?) async {
+        await runAction { [api] in
+            try await api.perform(.edit(timerId: timerId, projectId: projectId,
+                                        taskId: taskId, startTime: startTime,
+                                        endTime: endTime, description: description))
+        }
+    }
+
+    func deleteEntry(timerId: String) async {
+        await runAction { [api] in
+            try await api.perform(.delete(timerId: timerId))
+        }
+    }
+
+    /// Common wrapper: sets `isBusy`, runs the action, refreshes status
+    /// + entries, and converts errors into `lastError`.
     private func runAction(_ body: @escaping () async throws -> TimerActionResponse) async {
         isBusy = true
         defer { isBusy = false }
         do {
             _ = try await body()
             await refresh()
+            await refreshEntries()
         } catch let error as APIError {
             self.lastError = error
         } catch {
@@ -216,34 +259,41 @@ final class TimerStore {
         }
     }
 
-    /// Called by the idle dialog when the user picks an option. The
-    /// action enum mirrors the documented choices.
+    /// Called by the idle dialog when the user picks an option.
     func resolveIdle(_ resolution: IdleResolution) async {
         defer { pendingIdleEvent = nil }
         switch resolution {
         case .keep:
-            // Treat the idle minutes as billable — do nothing.
             break
         case .stop:
             await stop()
         case .switchTo(let projectId, let taskId):
             await switchTo(projectId: projectId, taskId: taskId)
+        case .addAsNewEntry(let projectId, let taskId, let startTime, let endTime):
+            // Stop the running timer first, then create a manual entry
+            // for the idle period on the selected task.
+            await stop()
+            await createEntry(projectId: projectId, taskId: taskId,
+                            startTime: startTime, endTime: endTime,
+                            description: nil)
         }
     }
 }
 
-/// What `IdleMonitor` hands to `TimerStore` when it spots inactivity.
 struct IdleEvent: Equatable {
     let idleSeconds: TimeInterval
     let timer: RunningTimer
     let detectedAt: Date
+
+    /// Approximate start of the idle period.
+    var idleStartedAt: Date {
+        detectedAt.addingTimeInterval(-idleSeconds)
+    }
 }
 
-/// The three options the idle dialog offers. `discard` is intentionally
-/// absent: the API doesn't allow stopping at a backdated timestamp, so
-/// "stop" is the closest we can get.
 enum IdleResolution: Equatable {
     case keep
     case stop
     case switchTo(projectId: String, taskId: String?)
+    case addAsNewEntry(projectId: String, taskId: String?, startTime: Date, endTime: Date)
 }
