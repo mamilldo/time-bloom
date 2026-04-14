@@ -1,0 +1,413 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		003AB0FBEB50197A56540EF4 /* ProjectPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EEB91761AC7502F71C12FA /* ProjectPickerView.swift */; };
+		05151236A03BAAAC200B60FD /* TimerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AD14F19B27DFFB3B60FB14 /* TimerStore.swift */; };
+		1D1349EBE9C195E74E58B48C /* PopoverRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E21357255BF4472AABA108B /* PopoverRootView.swift */; };
+		35C2B1070699D73C5C7C2BF9 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6439F1F29F83F6A44B01FE3 /* APIError.swift */; };
+		3F890B8EA09EC4C9140057FE /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2D1C2AAAED966BDFA4558 /* LoginView.swift */; };
+		3F92C5813B75771A55201A7B /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065501EF8E5462066F37A91E /* KeychainStore.swift */; };
+		564EB4EC9D1DC8F35D483D05 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 475C8CCF3B260246060333D3 /* MenuBarController.swift */; };
+		66F8D366CA50ED128AFBFA31 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B29A2D760D41D522BCAB8F /* NotificationManager.swift */; };
+		94F90C3041AF516B58F302C7 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C11AA11C9591573AC0AF6F /* AppSettings.swift */; };
+		A49DCBF1004DE88833CA807B /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 815DB583C2D481B3D1E213BC /* Models.swift */; };
+		BC6DE0975C25797FEAAD2BD2 /* TimeBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 380727EBBBE87C3658488C4B /* TimeBloomApp.swift */; };
+		BFF08E5F1E4CAD7D29F64921 /* SupabaseAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FDBA60306508DF076847C66 /* SupabaseAuthClient.swift */; };
+		C4C1EF4B344879C7FB66273E /* IdleAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4899DBBF9FDF233B923995F5 /* IdleAlertView.swift */; };
+		CC21F08C335A6C5AE08B5574 /* TimeBloom.xcodeproj in Resources */ = {isa = PBXBuildFile; fileRef = 90F5E3D620FB7C494E37D91D /* TimeBloom.xcodeproj */; };
+		CF5A57903A60D986ECF7F1B7 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589A45C008F792E0CFD36994 /* AuthService.swift */; };
+		CFC2BA682903A8815609AAC1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D53AB13C3F41FB75717B6CF3 /* AppDelegate.swift */; };
+		E1C156C4D8E50CF69F307498 /* TimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0276246167471544BD74B4 /* TimerView.swift */; };
+		E8C2E1A32C19A23A3F9FB3E3 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E2EC1C9362D7C07CB8D74B /* Theme.swift */; };
+		EBC526AD2A729ADDE076D0DE /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CDE1AFCA0D45151CF5218F2 /* APIClient.swift */; };
+		F78F1C9605B2A9DAE33A1E6B /* IdleMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D792F0518262FFEA3F4E1DC /* IdleMonitor.swift */; };
+		FA011024BFE5899E5BA5D9BD /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954B8F6A58C598DD5173FFBC /* Configuration.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		01EEB91761AC7502F71C12FA /* ProjectPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectPickerView.swift; sourceTree = "<group>"; };
+		065501EF8E5462066F37A91E /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		0FDBA60306508DF076847C66 /* SupabaseAuthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthClient.swift; sourceTree = "<group>"; };
+		1CDE1AFCA0D45151CF5218F2 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		380727EBBBE87C3658488C4B /* TimeBloomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBloomApp.swift; sourceTree = "<group>"; };
+		38B29A2D760D41D522BCAB8F /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		3D792F0518262FFEA3F4E1DC /* IdleMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleMonitor.swift; sourceTree = "<group>"; };
+		475C8CCF3B260246060333D3 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
+		4899DBBF9FDF233B923995F5 /* IdleAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleAlertView.swift; sourceTree = "<group>"; };
+		589A45C008F792E0CFD36994 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		815DB583C2D481B3D1E213BC /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		90F5E3D620FB7C494E37D91D /* TimeBloom.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = TimeBloom.xcodeproj; sourceTree = "<group>"; };
+		91AD14F19B27DFFB3B60FB14 /* TimerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerStore.swift; sourceTree = "<group>"; };
+		954B8F6A58C598DD5173FFBC /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
+		9E21357255BF4472AABA108B /* PopoverRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverRootView.swift; sourceTree = "<group>"; };
+		A3E2EC1C9362D7C07CB8D74B /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		C1C11AA11C9591573AC0AF6F /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		C25B537D0853E1CBF4F5A180 /* TimeBloom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeBloom.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CB0276246167471544BD74B4 /* TimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerView.swift; sourceTree = "<group>"; };
+		D53AB13C3F41FB75717B6CF3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D6439F1F29F83F6A44B01FE3 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
+		F1F2D1C2AAAED966BDFA4558 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		54AC9C3CC7267F3C891CC3B3 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				815DB583C2D481B3D1E213BC /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		64F8474DE1DFA582538C7368 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C25B537D0853E1CBF4F5A180 /* TimeBloom.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8C1E221EB69AAE81324B88A1 /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				475C8CCF3B260246060333D3 /* MenuBarController.swift */,
+			);
+			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		AE14089A57C8C4679139B143 /* TimeBloom */ = {
+			isa = PBXGroup;
+			children = (
+				D53AB13C3F41FB75717B6CF3 /* AppDelegate.swift */,
+				954B8F6A58C598DD5173FFBC /* Configuration.swift */,
+				90F5E3D620FB7C494E37D91D /* TimeBloom.xcodeproj */,
+				380727EBBBE87C3658488C4B /* TimeBloomApp.swift */,
+				8C1E221EB69AAE81324B88A1 /* MenuBar */,
+				54AC9C3CC7267F3C891CC3B3 /* Models */,
+				D440B747289E350E5B1F085E /* Networking */,
+				D13B4DBEF8078D53ED35726E /* Services */,
+				F4BC921BC163F74128DBDC35 /* Views */,
+			);
+			path = TimeBloom;
+			sourceTree = "<group>";
+		};
+		CBCECDBA89D8BC1522F05EE1 = {
+			isa = PBXGroup;
+			children = (
+				AE14089A57C8C4679139B143 /* TimeBloom */,
+				64F8474DE1DFA582538C7368 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D13B4DBEF8078D53ED35726E /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				C1C11AA11C9591573AC0AF6F /* AppSettings.swift */,
+				589A45C008F792E0CFD36994 /* AuthService.swift */,
+				3D792F0518262FFEA3F4E1DC /* IdleMonitor.swift */,
+				065501EF8E5462066F37A91E /* KeychainStore.swift */,
+				38B29A2D760D41D522BCAB8F /* NotificationManager.swift */,
+				91AD14F19B27DFFB3B60FB14 /* TimerStore.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D440B747289E350E5B1F085E /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				1CDE1AFCA0D45151CF5218F2 /* APIClient.swift */,
+				D6439F1F29F83F6A44B01FE3 /* APIError.swift */,
+				0FDBA60306508DF076847C66 /* SupabaseAuthClient.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		F4BC921BC163F74128DBDC35 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				4899DBBF9FDF233B923995F5 /* IdleAlertView.swift */,
+				F1F2D1C2AAAED966BDFA4558 /* LoginView.swift */,
+				9E21357255BF4472AABA108B /* PopoverRootView.swift */,
+				01EEB91761AC7502F71C12FA /* ProjectPickerView.swift */,
+				A3E2EC1C9362D7C07CB8D74B /* Theme.swift */,
+				CB0276246167471544BD74B4 /* TimerView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2CD7CD281D02C74A9FEA35F9 /* TimeBloom */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C3E5D74478849F47F117C3B1 /* Build configuration list for PBXNativeTarget "TimeBloom" */;
+			buildPhases = (
+				6E74C09C14D27430CF50C66A /* Sources */,
+				4F94A21C5F65352FCE3AC4F1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TimeBloom;
+			packageProductDependencies = (
+			);
+			productName = TimeBloom;
+			productReference = C25B537D0853E1CBF4F5A180 /* TimeBloom.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E170916AD4A25812385BF471 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = C87653338C2E661C62A0E346 /* Build configuration list for PBXProject "TimeBloom" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CBCECDBA89D8BC1522F05EE1;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 64F8474DE1DFA582538C7368 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2CD7CD281D02C74A9FEA35F9 /* TimeBloom */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4F94A21C5F65352FCE3AC4F1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC21F08C335A6C5AE08B5574 /* TimeBloom.xcodeproj in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6E74C09C14D27430CF50C66A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EBC526AD2A729ADDE076D0DE /* APIClient.swift in Sources */,
+				35C2B1070699D73C5C7C2BF9 /* APIError.swift in Sources */,
+				CFC2BA682903A8815609AAC1 /* AppDelegate.swift in Sources */,
+				94F90C3041AF516B58F302C7 /* AppSettings.swift in Sources */,
+				CF5A57903A60D986ECF7F1B7 /* AuthService.swift in Sources */,
+				FA011024BFE5899E5BA5D9BD /* Configuration.swift in Sources */,
+				C4C1EF4B344879C7FB66273E /* IdleAlertView.swift in Sources */,
+				F78F1C9605B2A9DAE33A1E6B /* IdleMonitor.swift in Sources */,
+				3F92C5813B75771A55201A7B /* KeychainStore.swift in Sources */,
+				3F890B8EA09EC4C9140057FE /* LoginView.swift in Sources */,
+				564EB4EC9D1DC8F35D483D05 /* MenuBarController.swift in Sources */,
+				A49DCBF1004DE88833CA807B /* Models.swift in Sources */,
+				66F8D366CA50ED128AFBFA31 /* NotificationManager.swift in Sources */,
+				1D1349EBE9C195E74E58B48C /* PopoverRootView.swift in Sources */,
+				003AB0FBEB50197A56540EF4 /* ProjectPickerView.swift in Sources */,
+				BFF08E5F1E4CAD7D29F64921 /* SupabaseAuthClient.swift in Sources */,
+				E8C2E1A32C19A23A3F9FB3E3 /* Theme.swift in Sources */,
+				BC6DE0975C25797FEAAD2BD2 /* TimeBloomApp.swift in Sources */,
+				05151236A03BAAAC200B60FD /* TimerStore.swift in Sources */,
+				E1C156C4D8E50CF69F307498 /* TimerView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2E41143658F951439BF418E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TimeBloom/TimeBloom.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TimeBloom/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.timebloom.menubar;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		3815714C3EB0BA33068F26F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A27287CE8AD1B948D6913645 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TimeBloom/TimeBloom.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TimeBloom/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.timebloom.menubar;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A518C06240374CFB781D94B8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C3E5D74478849F47F117C3B1 /* Build configuration list for PBXNativeTarget "TimeBloom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A27287CE8AD1B948D6913645 /* Debug */,
+				2E41143658F951439BF418E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C87653338C2E661C62A0E346 /* Build configuration list for PBXProject "TimeBloom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A518C06240374CFB781D94B8 /* Debug */,
+				3815714C3EB0BA33068F26F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E170916AD4A25812385BF471 /* Project object */;
+}

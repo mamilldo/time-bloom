@@ -1,0 +1,16 @@
+name: TimeBloom
+targets:
+  TimeBloom:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: TimeBloom
+        excludes:
+          - "*.entitlements"
+          - "Resources/**"
+    settings:
+      INFOPLIST_FILE: TimeBloom/Resources/Info.plist
+      CODE_SIGN_ENTITLEMENTS: TimeBloom/TimeBloom.entitlements
+      PRODUCT_BUNDLE_IDENTIFIER: app.timebloom.menubar
+      GENERATE_INFOPLIST_FILE: NO
