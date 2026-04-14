@@ -41,6 +41,10 @@ final class MenuBarController: NSObject {
     /// recursion pattern: each invocation registers for "any change to
     /// the tracked properties", and the `onChange` closure re-registers
     /// itself. No polling, no Combine.
+    ///
+    /// A 1-second timer ticks the elapsed HH:MM display in the menu bar
+    /// while a timer is running, similar to the Harvest app.
+    private var menuBarTickTimer: Timer?
 
     init(
         auth: AuthService,
@@ -207,12 +211,45 @@ final class MenuBarController: NSObject {
         idleWindow = nil
     }
 
-    // MARK: - Icon rendering
+    // MARK: - Icon + elapsed time rendering
 
+    /// Updates the leaf icon AND the elapsed-time title shown in the
+    /// menu bar. When a timer is running we display "0:42" (h:mm) next
+    /// to the filled leaf, just like Harvest does. When stopped we show
+    /// only the outline leaf with no title.
     private func refreshIcon() {
-        let running = store.status?.runningTimer != nil
-        statusItem.button?.image = Self.icon(running: running)
-        statusItem.button?.image?.isTemplate = true
+        guard let button = statusItem.button else { return }
+
+        if let timer = store.status?.runningTimer {
+            button.image = Self.icon(running: true)
+            let elapsed = Int(Date.now.timeIntervalSince(timer.startTime))
+            let h = elapsed / 3600
+            let m = (elapsed % 3600) / 60
+            button.title = String(format: " %d:%02d", h, m)
+            startMenuBarTick()
+        } else {
+            button.image = Self.icon(running: false)
+            button.title = ""
+            stopMenuBarTick()
+        }
+        button.image?.isTemplate = true
+    }
+
+    /// Fires every 60 seconds to update the HH:MM display while a timer
+    /// is running. We only need minute-level precision in the menu bar
+    /// (the popover shows seconds).
+    private func startMenuBarTick() {
+        guard menuBarTickTimer == nil else { return }
+        menuBarTickTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.refreshIcon()
+            }
+        }
+    }
+
+    private func stopMenuBarTick() {
+        menuBarTickTimer?.invalidate()
+        menuBarTickTimer = nil
     }
 
     /// Returns the SF Symbol used for the current state. We keep the
