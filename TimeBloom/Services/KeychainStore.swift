@@ -15,7 +15,10 @@
 //
 
 import Foundation
+import OSLog
 import Security
+
+private let log = Logger(subsystem: Configuration.keychainService, category: "keychain")
 
 /// Logical names for the two values we store. Using an enum avoids typos
 /// and keeps the storage layout discoverable.
@@ -39,11 +42,24 @@ struct KeychainStore {
     func set(_ value: String, for key: KeychainKey) throws {
         let data = Data(value.utf8)
 
-        // Always delete first so we never have to deal with the duplicate-
-        // item branch of `SecItemAdd`. Cheaper to write than to maintain
-        // an "update if exists, otherwise add" code path.
-        let deleteQuery = baseQuery(for: key)
-        SecItemDelete(deleteQuery as CFDictionary)
+        // Update in place first. The old "delete, then add" approach broke
+        // silently when the delete was refused (e.g. the item was created
+        // by an earlier build with a different code signature): the add
+        // then failed with errSecDuplicateItem and the OLD refresh token
+        // stayed in the Keychain. Supabase rotates refresh tokens, so on
+        // the next launch that stale token was rejected and the user had
+        // to sign in again.
+        let attributes: [String: Any] = [kSecValueData as String: data]
+        let updateStatus = SecItemUpdate(baseQuery(for: key) as CFDictionary,
+                                         attributes as CFDictionary)
+        if updateStatus == errSecSuccess { return }
+
+        if updateStatus != errSecItemNotFound {
+            // Something is wrong with the existing item (typically an ACL
+            // that doesn't trust this build). Remove it and start over.
+            log.error("Keychain update of \(key.rawValue, privacy: .public) failed: \(updateStatus) – recreating item")
+            SecItemDelete(baseQuery(for: key) as CFDictionary)
+        }
 
         var addQuery = baseQuery(for: key)
         addQuery[kSecValueData as String] = data
@@ -54,6 +70,7 @@ struct KeychainStore {
 
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         guard status == errSecSuccess else {
+            log.error("Keychain add of \(key.rawValue, privacy: .public) failed: \(status)")
             throw KeychainError.unhandled(status)
         }
     }
@@ -65,6 +82,12 @@ struct KeychainStore {
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status != errSecSuccess && status != errSecItemNotFound {
+            // Most often errSecAuthFailed / errSecInteractionNotAllowed:
+            // the item exists but this build of the app isn't allowed to
+            // read it (code signature changed). Shows up in Console.app.
+            log.error("Keychain read of \(key.rawValue, privacy: .public) failed: \(status)")
+        }
         guard status == errSecSuccess,
               let data = result as? Data,
               let str  = String(data: data, encoding: .utf8) else {

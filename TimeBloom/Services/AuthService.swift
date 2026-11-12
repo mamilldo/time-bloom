@@ -16,6 +16,9 @@
 
 import Foundation
 import Observation
+import OSLog
+
+private let log = Logger(subsystem: Configuration.keychainService, category: "auth")
 
 @MainActor
 @Observable
@@ -124,7 +127,10 @@ final class AuthService {
             // Refresh tokens have a long but finite lifetime; if Supabase
             // says no, we're done. Wipe and force re-login.
             if case APIError.unauthorized = error {
+                log.error("Refresh token rejected by Supabase – signing out")
                 signOut()
+            } else {
+                log.error("Token refresh failed, keeping session: \(error.localizedDescription, privacy: .public)")
             }
             throw error
         }
@@ -137,8 +143,11 @@ final class AuthService {
         currentUser       = session.user
         isSignedIn        = true
 
-        try keychain.set(session.accessToken,  for: .accessToken)
+        // Refresh token first: it's the one that matters across restarts.
+        // Supabase rotates it on every refresh, so a stale copy in the
+        // Keychain means a forced re-login on next launch.
         try keychain.set(session.refreshToken, for: .refreshToken)
+        try keychain.set(session.accessToken,  for: .accessToken)
     }
 
     private func restoreFromKeychain() {
@@ -150,5 +159,6 @@ final class AuthService {
         // call triggers a refresh. That's the safest default.
         accessTokenExpiry = nil
         isSignedIn = (access != nil) && (refresh != nil)
+        log.info("Restored session from Keychain: \(self.isSignedIn ? "yes" : "no", privacy: .public)")
     }
 }
