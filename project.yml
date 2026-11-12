@@ -13,4 +13,10 @@ targets:
       INFOPLIST_FILE: TimeBloom/Resources/Info.plist
       CODE_SIGN_ENTITLEMENTS: TimeBloom/TimeBloom.entitlements
       PRODUCT_BUNDLE_IDENTIFIER: app.timebloom.menubar
+      # Sign with your Apple ID team (Xcode → Settings → Accounts), not
+      # "Sign to Run Locally". Ad-hoc signatures change on every build, and
+      # the Keychain then refuses to hand the saved login back to the new
+      # build — which looks like "I have to sign in every time".
+      CODE_SIGN_STYLE: Automatic
+      # DEVELOPMENT_TEAM: ABCDE12345
       GENERATE_INFOPLIST_FILE: NO
